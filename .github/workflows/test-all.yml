@@ -32,11 +32,15 @@ jobs:
           fi
           
           # Check for language subdirectories
-          for lang_dir in "$task_name"/{go,python,java,cpp}/; do
-            if [[ -d "$lang_dir" ]]; then
-              lang=${lang_dir%/}
-              lang=${lang##*/}
-              MATRIX_JSON=$(echo "$MATRIX_JSON" | jq ". + [{\"task\": \"$task_name\", \"lang\": \"$lang\"}]")
+          for lang in go python java cpp; do
+            if [[ -d "$task_name/$lang" ]]; then
+              # Build JSON manually to avoid jq dependency issues
+              if [[ "$MATRIX_JSON" == "[]" ]]; then
+                MATRIX_JSON="[{\"task\": \"$task_name\", \"lang\": \"$lang\"}]"
+              else
+                # Remove the closing bracket and add new entry
+                MATRIX_JSON="${MATRIX_JSON%]}, {\"task\": \"$task_name\", \"lang\": \"$lang\"}]"
+              fi
               HAS_TASKS=true
             fi
           done
@@ -44,7 +48,8 @@ jobs:
         
         echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
         echo "has-tasks=$HAS_TASKS" >> $GITHUB_OUTPUT
-        echo "Detected task-language combinations: $MATRIX_JSON"
+        echo "Detected task-language combinations:"
+        echo "$MATRIX_JSON"
 
   test-solutions:
     needs: detect-tasks
