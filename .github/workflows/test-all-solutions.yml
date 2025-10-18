@@ -1,0 +1,195 @@
+name: Test All Algorithm Solutions
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test-solutions:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        language: [go, python, java, cpp]
+      fail-fast: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Set up Go
+      if: matrix.language == 'go'
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Set up Java
+      if: matrix.language == 'java'
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+
+    - name: Set up C++
+      if: matrix.language == 'cpp'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ build-essential
+
+    - name: Create virtual environment and install judge
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install --upgrade pip
+        pip install fmi-ai-judge
+
+    - name: Find task folders and run tests
+      run: |
+        source .venv/bin/activate
+        
+        # Find all directories that contain a Makefile (task folders)
+        TASK_FOLDERS=$(find . -maxdepth 2 -name "Makefile" -not -path "./.venv/*" -not -path "./Makefile" | xargs dirname | sort)
+        
+        echo "Found task folders: $TASK_FOLDERS"
+        
+        # Create results directory
+        mkdir -p test-results/${{ matrix.language }}
+        
+        # Test each task folder
+        for task_dir in $TASK_FOLDERS; do
+          task_name=$(basename "$task_dir")
+          echo "Testing $task_name with ${{ matrix.language }}"
+          
+          # Check if the language directory exists in this task
+          if [ -d "$task_dir/${{ matrix.language }}" ]; then
+            cd "$task_dir"
+            
+            # Run tests for this language
+            echo "Running tests for $task_name in ${{ matrix.language }}"
+            if make test LANGUAGE=${{ matrix.language }}; then
+              echo "✅ Tests passed for $task_name (${{ matrix.language }})"
+              test_status="PASSED"
+            else
+              echo "❌ Tests failed for $task_name (${{ matrix.language }})"
+              test_status="FAILED"
+            fi
+            
+            # Copy results if they exist
+            if [ -f ".judge/results.csv" ]; then
+              cp .judge/results.csv "../test-results/${{ matrix.language }}/${task_name}_results.csv"
+            fi
+            
+            if [ -f ".judge/results.json" ]; then
+              cp .judge/results.json "../test-results/${{ matrix.language }}/${task_name}_results.json"
+            fi
+            
+            # Create a summary file
+            echo "$task_name,${{ matrix.language }},$test_status" >> "../test-results/${{ matrix.language }}/summary.csv"
+            
+            cd ..
+          else
+            echo "⏭️  Skipping $task_name - no ${{ matrix.language }} implementation found"
+          fi
+        done
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.language }}
+        path: test-results/${{ matrix.language }}/
+        retention-days: 30
+
+    - name: Display results summary
+      if: always()
+      run: |
+        if [ -f "test-results/${{ matrix.language }}/summary.csv" ]; then
+          echo "## Test Results Summary for ${{ matrix.language }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Task | Language | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          while IFS=',' read -r task language status; do
+            if [ "$status" = "PASSED" ]; then
+              status_icon="✅"
+            else
+              status_icon="❌"
+            fi
+            echo "| $task | $language | $status_icon $status |" >> $GITHUB_STEP_SUMMARY
+          done < "test-results/${{ matrix.language }}/summary.csv"
+        fi
+
+  collect-results:
+    needs: test-solutions
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Download all test results
+      uses: actions/download-artifact@v4
+      with:
+        path: all-results/
+
+    - name: Create comprehensive summary
+      run: |
+        echo "# 🧪 Algorithm Solutions Test Report" > test-report.md
+        echo "" >> test-report.md
+        echo "## Overview" >> test-report.md
+        echo "" >> test-report.md
+        
+        # Create a comprehensive table
+        echo "| Task | Go | Python | Java | C++ |" >> test-report.md
+        echo "|------|-------|--------|------|-----|" >> test-report.md
+        
+        # Collect all task names
+        tasks=$(find all-results/ -name "summary.csv" -exec cat {} \; | cut -d',' -f1 | sort -u)
+        
+        for task in $tasks; do
+          row="| $task |"
+          
+          for lang in go python java cpp; do
+            status=""
+            if [ -f "all-results/test-results-$lang/summary.csv" ]; then
+              status=$(grep "^$task," "all-results/test-results-$lang/summary.csv" | cut -d',' -f3 || echo "N/A")
+              if [ "$status" = "PASSED" ]; then
+                status="✅"
+              elif [ "$status" = "FAILED" ]; then
+                status="❌"
+              else
+                status="⏭️"
+              fi
+            else
+              status="⏭️"
+            fi
+            row="$row $status |"
+          done
+          
+          echo "$row" >> test-report.md
+        done
+        
+        echo "" >> test-report.md
+        echo "## Legend" >> test-report.md
+        echo "- ✅ Tests passed" >> test-report.md
+        echo "- ❌ Tests failed" >> test-report.md
+        echo "- ⏭️ Not implemented or skipped" >> test-report.md
+
+    - name: Upload comprehensive report
+      uses: actions/upload-artifact@v4
+      with:
+        name: comprehensive-test-report
+        path: |
+          test-report.md
+          all-results/
+        retention-days: 30
+
+    - name: Display final summary
+      run: |
+        cat test-report.md >> $GITHUB_STEP_SUMMARY

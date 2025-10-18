@@ -56,3 +56,4 @@ go.sum
 
 # judge-ai-fmi test results
 .judge/
+frog-leap-puzzle/frog-leap
