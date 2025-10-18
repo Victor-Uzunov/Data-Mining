@@ -101,18 +101,15 @@ jobs:
 
     - name: Test correctness for ${{ matrix.task }} (${{ matrix.lang }})
       run: make test TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }}
-      continue-on-error: true
 
     - name: Run benchmark for ${{ matrix.task }} (${{ matrix.lang }})
       run: make bench TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }}
-      continue-on-error: true
 
     - name: Test timing mode for ${{ matrix.task }} (${{ matrix.lang }})
       run: |
         echo "Testing FMI_TIME_ONLY mode for ${{ matrix.task }} (${{ matrix.lang }})..."
         export FMI_TIME_ONLY=1
         make run TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }} N=10 | grep "# TIMES_MS" || echo "Timing mode test completed"
-      continue-on-error: true
 
   lint-and-format:
     needs: detect-tasks

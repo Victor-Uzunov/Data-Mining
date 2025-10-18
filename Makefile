@@ -235,7 +235,8 @@ test-all:
 fmt-all:
 	@echo "$(GREEN)Formatting all tasks...$(NC)"
 	@for task in $(TASKS); do \
-		$(MAKE) fmt TASK=$$task LANGUAGE=auto || exit 1; \
+		@echo "$(YELLOW)Formatting $$task...$(NC)"; \
+		$(MAKE) fmt TASK=$$task LANGUAGE=auto -s || exit 1; \
 	done
 	@echo "$(GREEN)All tasks formatted successfully!$(NC)"
 
@@ -243,7 +244,8 @@ fmt-all:
 clean-all:
 	@echo "$(GREEN)Cleaning all tasks...$(NC)"
 	@for task in $(TASKS); do \
-		$(MAKE) clean TASK=$$task LANGUAGE=auto || exit 1; \
+		echo "$(YELLOW)Cleaning $$task...$(NC)"; \
+		$(MAKE) clean TASK=$$task LANGUAGE=auto -s || exit 1; \
 	done
 	@echo "$(GREEN)All tasks cleaned successfully!$(NC)"
 
