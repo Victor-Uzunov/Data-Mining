@@ -269,17 +269,6 @@ All solutions should meet these standards:
 - **Timing Support**: Support `FMI_TIME_ONLY=1` environment variable
 - **Input/Output**: Read from stdin, write to stdout (exact format as specified)
 
-## CI/CD Pipeline
-
-The repository includes an automated GitHub Actions workflow that:
-
-- **Auto-detects** all tasks with Go implementations
-- **Builds** each task in parallel using a matrix strategy
-- **Tests** correctness using fmi-ai-judge
-- **Runs** benchmark tests
-- **Validates** code formatting
-- **Reports** comprehensive test results
-
 ## Available Algorithms
 
 Currently implemented algorithms:
