@@ -23,7 +23,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.11'
 
     - name: Set up Go
       if: matrix.language == 'go'
@@ -49,7 +49,10 @@ jobs:
         python -m venv .venv
         source .venv/bin/activate
         pip install --upgrade pip
+        echo "Installing fmi-ai-judge..."
         pip install fmi-ai-judge
+        echo "Verifying installation..."
+        python -c "import fmi_ai_judge; print(f'fmi-ai-judge version installed successfully')"
 
     - name: Find task folders and run tests
       run: |
@@ -74,21 +77,42 @@ jobs:
             
             # Run tests for this language
             echo "Running tests for $task_name in ${{ matrix.language }}"
+            echo "Current directory: $(pwd)"
+            echo "Available files:"
+            ls -la
+            
+            # Check if judge binary is available
+            which judge || echo "Judge binary not found in PATH"
+            
             if make test LANGUAGE=${{ matrix.language }}; then
               echo "✅ Tests passed for $task_name (${{ matrix.language }})"
               test_status="PASSED"
             else
               echo "❌ Tests failed for $task_name (${{ matrix.language }})"
               test_status="FAILED"
+              
+              # Show more debug info on failure
+              echo "Debug info - .judge directory contents:"
+              if [ -d ".judge" ]; then
+                ls -la .judge/
+              else
+                echo ".judge directory does not exist"
+              fi
             fi
             
             # Copy results if they exist
             if [ -f ".judge/results.csv" ]; then
               cp .judge/results.csv "../test-results/${{ matrix.language }}/${task_name}_results.csv"
+              echo "Copied results.csv"
+            else
+              echo "No results.csv found"
             fi
             
             if [ -f ".judge/results.json" ]; then
               cp .judge/results.json "../test-results/${{ matrix.language }}/${task_name}_results.json"
+              echo "Copied results.json"
+            else
+              echo "No results.json found"
             fi
             
             # Create a summary file
