@@ -40,7 +40,7 @@ make test TASK=frog-leap-puzzle
 make build TASK=frog-leap-puzzle
 
 # Or run directly:
-echo "3" | ./frog-leap-puzzle/go/solution
+echo "3" | ./frog-leap-puzzle/go/frog-leap
 ```
 
 The solution supports timing mode with `FMI_TIME_ONLY=1` environment variable.

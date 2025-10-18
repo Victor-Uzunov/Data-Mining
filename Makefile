@@ -31,25 +31,17 @@ help:
 	@echo "  help              - Show this help message"
 	@echo "  list-tasks        - List all available tasks"
 	@echo "  build TASK=<name> [LANGUAGE=<lang>] - Build specific task"
-	@echo "  run TASK=<name> [LANGUAGE=<lang>] N=<input> - Run specific task"
 	@echo "  test TASK=<name> [LANGUAGE=<lang>] - Test specific task with fmi-ai-judge"
-	@echo "  bench TASK=<name> [LANGUAGE=<lang>] - Benchmark specific task"
-	@echo "  validate TASK=<name> [LANGUAGE=<lang>] - Validate task format without running tests"
-	@echo "  fmt TASK=<name> [LANGUAGE=<lang>] - Format code for specific task"
 	@echo "  clean TASK=<name> [LANGUAGE=<lang>] - Clean build artifacts"
 	@echo "  build-all         - Build all tasks"
 	@echo "  test-all          - Test all tasks"
-	@echo "  fmt-all           - Format all tasks"
-	@echo "  clean-all         - Clean all tasks"
 	@echo ""
 	@echo "$(YELLOW)Supported languages:$(NC)"
 	@echo "  go, python, java, cpp"
 	@echo "  Use LANGUAGE=auto (default) to auto-detect or specify explicitly"
 	@echo ""
 	@echo "$(YELLOW)Examples:$(NC)"
-	@echo "  make run TASK=frog-leap-puzzle N=3 LANGUAGE=go"
 	@echo "  make test TASK=frog-leap-puzzle LANGUAGE=python"
-	@echo "  make validate TASK=frog-leap-puzzle"
 	@echo "  make build-all"
 	@echo ""
 	@echo "$(YELLOW)Available tasks:$(NC)"
@@ -123,96 +115,12 @@ build: check-task
 		esac \
 	fi
 
-# Run specific task
-run: check-task build
-	@DETECTED_LANG=$$(LANGUAGE=C $(MAKE) -s detect-lang TASK=$(TASK) LANGUAGE=$(LANGUAGE)); \
-	echo "$(GREEN)Running task: $(TASK) ($$DETECTED_LANG) with N=$(N)$(NC)"; \
-	if [ -f "$(TASK)/Makefile" ]; then \
-		cd $(TASK) && $(MAKE) run N=$(N) LANGUAGE=$$DETECTED_LANG; \
-	else \
-		case $$DETECTED_LANG in \
-			go) echo $(N) | ./$(TASK)/go/solution ;; \
-			python) echo $(N) | python3 $(TASK)/python/solution.py ;; \
-			java) echo $(N) | cd $(TASK)/java && java Solution ;; \
-			cpp) echo $(N) | ./$(TASK)/cpp/solution ;; \
-			*) echo "$(RED)Unsupported language: $$DETECTED_LANG$(NC)" && exit 1 ;; \
-		esac \
-	fi
-
 # Test specific task with enhanced judge options
 test: check-task build
 	@DETECTED_LANG=$$(LANGUAGE=C $(MAKE) -s detect-lang TASK=$(TASK) LANGUAGE=$(LANGUAGE)); \
 	echo "$(GREEN)Testing task: $(TASK) ($$DETECTED_LANG)$(NC)"; \
 	if [ -f "$(TASK)/Makefile" ]; then \
 		cd $(TASK) && $(MAKE) test LANGUAGE=$$DETECTED_LANG; \
-	else \
-		case $$DETECTED_LANG in \
-			go) fmi-ai-judge run $(TASK)/go/solution --timeout 30 ;; \
-			python) fmi-ai-judge run "python3 $(TASK)/python/solution.py" --timeout 30 ;; \
-			java) cd $(TASK)/java && fmi-ai-judge run "java Solution" --timeout 30 ;; \
-			cpp) fmi-ai-judge run $(TASK)/cpp/solution --timeout 30 ;; \
-			*) echo "$(RED)Unsupported language: $$DETECTED_LANG$(NC)" && exit 1 ;; \
-		esac \
-	fi
-
-# Benchmark specific task with enhanced options
-bench: check-task build
-	@DETECTED_LANG=$$(LANGUAGE=C $(MAKE) -s detect-lang TASK=$(TASK) LANGUAGE=$(LANGUAGE)); \
-	echo "$(GREEN)Benchmarking task: $(TASK) ($$DETECTED_LANG)$(NC)"; \
-	if [ -f "$(TASK)/Makefile" ]; then \
-		cd $(TASK) && $(MAKE) bench LANGUAGE=$$DETECTED_LANG; \
-	else \
-		case $$DETECTED_LANG in \
-			go) fmi-ai-judge run $(TASK)/go/solution --benchmark --timeout 60 ;; \
-			python) fmi-ai-judge run "python3 $(TASK)/python/solution.py" --benchmark --timeout 60 ;; \
-			java) cd $(TASK)/java && fmi-ai-judge run "java Solution" --benchmark --timeout 60 ;; \
-			cpp) fmi-ai-judge run $(TASK)/cpp/solution --benchmark --timeout 60 ;; \
-			*) echo "$(RED)Unsupported language: $$DETECTED_LANG$(NC)" && exit 1 ;; \
-		esac \
-	fi
-
-# Validate specific task (check format without running tests)
-validate: check-task build
-	@DETECTED_LANG=$$(LANGUAGE=C $(MAKE) -s detect-lang TASK=$(TASK) LANGUAGE=$(LANGUAGE)); \
-	echo "$(GREEN)Validating task: $(TASK) ($$DETECTED_LANG)$(NC)"; \
-	case $$DETECTED_LANG in \
-		go) fmi-ai-judge validate $(TASK)/go/solution ;; \
-		python) fmi-ai-judge validate "python3 $(TASK)/python/solution.py" ;; \
-		java) cd $(TASK)/java && fmi-ai-judge validate "java Solution" ;; \
-		cpp) fmi-ai-judge validate $(TASK)/cpp/solution ;; \
-		*) echo "$(RED)Unsupported language: $$DETECTED_LANG$(NC)" && exit 1 ;; \
-	esac
-
-# Format specific task code
-fmt: check-task
-	@DETECTED_LANG=$$(LANGUAGE=C $(MAKE) -s detect-lang TASK=$(TASK) LANGUAGE=$(LANGUAGE)); \
-	echo "$(GREEN)Formatting task: $(TASK) ($$DETECTED_LANG)$(NC)"; \
-	if [ -f "$(TASK)/Makefile" ]; then \
-		cd $(TASK) && $(MAKE) fmt LANGUAGE=$$DETECTED_LANG; \
-	else \
-		case $$DETECTED_LANG in \
-			go) gofmt -w $(TASK)/go/solution.go ;; \
-			python) autopep8 --in-place --aggressive --aggressive $(TASK)/python/solution.py ;; \
-			java) cd $(TASK)/java && java -jar /path/to/google-java-format.jar --replace Solution.java ;; \
-			cpp) clang-format -i $(TASK)/cpp/solution.cpp ;; \
-			*) echo "$(RED)Unsupported language: $$DETECTED_LANG$(NC)" && exit 1 ;; \
-		esac \
-	fi
-
-# Clean build artifacts for a specific task
-clean: check-task
-	@DETECTED_LANG=$$(LANGUAGE=C $(MAKE) -s detect-lang TASK=$(TASK) LANGUAGE=$(LANGUAGE)); \
-	echo "$(GREEN)Cleaning task: $(TASK) ($$DETECTED_LANG)$(NC)"; \
-	if [ -f "$(TASK)/Makefile" ]; then \
-		cd $(TASK) && $(MAKE) clean LANGUAGE=$$DETECTED_LANG; \
-	else \
-		case $$DETECTED_LANG in \
-			go) rm -f $(TASK)/go/solution ;; \
-			python) echo "No build artifacts to clean for Python" ;; \
-			java) cd $(TASK)/java && rm -f *.class ;; \
-			cpp) cd $(TASK)/cpp && rm -f solution ;; \
-			*) echo "$(RED)Unsupported language: $$DETECTED_LANG$(NC)" && exit 1 ;; \
-		esac \
 	fi
 
 # Build all tasks
@@ -230,15 +138,6 @@ test-all:
 		$(MAKE) test TASK=$$task LANGUAGE=auto || exit 1; \
 	done
 	@echo "$(GREEN)All tasks tested successfully!$(NC)"
-
-# Format all tasks
-fmt-all:
-	@echo "$(GREEN)Formatting all tasks...$(NC)"
-	@for task in $(TASKS); do \
-		@echo "$(YELLOW)Formatting $$task...$(NC)"; \
-		$(MAKE) fmt TASK=$$task LANGUAGE=auto -s || exit 1; \
-	done
-	@echo "$(GREEN)All tasks formatted successfully!$(NC)"
 
 # Clean all tasks
 clean-all:

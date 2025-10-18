@@ -101,9 +101,6 @@ make build-all
 # Test all tasks
 make test-all
 
-# Format all tasks
-make fmt-all
-
 # Clean all tasks
 make clean-all
 ```
@@ -234,8 +231,6 @@ make test TASK=your-algorithm-name
 # Ensure all existing tests still pass
 make test-all
 
-# Format your code
-make fmt TASK=your-algorithm-name
 ```
 
 ### 5. Submit a Pull Request

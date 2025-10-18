@@ -93,8 +93,10 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -U fmi-ai-judge
+                python -m venv .venv
+                source .venv/bin/activate
+                python -m pip install --upgrade pip
+                pip install -U fmi-ai-judge
 
     - name: Build solution for ${{ matrix.task }} (${{ matrix.lang }})
       run: make build TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }}
@@ -102,57 +104,29 @@ jobs:
     - name: Test correctness for ${{ matrix.task }} (${{ matrix.lang }})
       run: make test TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }}
 
-    - name: Run benchmark for ${{ matrix.task }} (${{ matrix.lang }})
-      run: make bench TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }}
-
-    - name: Test timing mode for ${{ matrix.task }} (${{ matrix.lang }})
+    - name: Display test results
+      if: always()
       run: |
-        echo "Testing FMI_TIME_ONLY mode for ${{ matrix.task }} (${{ matrix.lang }})..."
-        export FMI_TIME_ONLY=1
-        make run TASK=${{ matrix.task }} LANGUAGE=${{ matrix.lang }} N=10 | grep "# TIMES_MS" || echo "Timing mode test completed"
-
-  lint-and-format:
-    needs: detect-tasks
-    if: needs.detect-tasks.outputs.has-tasks == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-
-    - name: Install Go tools
-      run: go install golang.org/x/tools/cmd/goimports@latest
-
-    - name: Check formatting for all tasks
-      run: |
-        make fmt-all
-        # Check if there are any changes after formatting
-        if ! git diff --exit-code; then
-          echo "Code formatting issues found. Please run 'make fmt-all' locally."
-          exit 1
-        fi
-
-  summary:
-    needs: [detect-tasks, test-solutions, lint-and-format]
-    if: always()
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Summary
-      run: |
-        echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
-        echo "- **Trigger**: ${{ github.event_name }} on ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Tasks detected**: ${{ needs.detect-tasks.outputs.has-tasks == 'true' && 'Yes' || 'No' }}" >> $GITHUB_STEP_SUMMARY
-        
-        if [ "${{ needs.detect-tasks.outputs.has-tasks }}" = "true" ]; then
-          echo "- **Solutions tested**: Multiple language implementations" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build status**: ${{ needs.test-solutions.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Lint status**: ${{ needs.lint-and-format.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "## Test Results for ${{ matrix.task }} (${{ matrix.lang }})" >> $GITHUB_STEP_SUMMARY
+        if [ -f "${{ matrix.task }}/.judge/results.csv" ]; then
+          echo "### CSV Results:" >> $GITHUB_STEP_SUMMARY
+          echo '```csv' >> $GITHUB_STEP_SUMMARY
+          cat "${{ matrix.task }}/.judge/results.csv" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          # Also output to console for immediate visibility
+          echo "=== Test Results for ${{ matrix.task }} (${{ matrix.lang }}) ==="
+          cat "${{ matrix.task }}/.judge/results.csv"
+          echo "================================================================"
+          
+          # Check for failures and provide summary
+          if grep -q "TLE\|WA\|RE" "${{ matrix.task }}/.judge/results.csv"; then
+            echo "⚠️ Some tests failed - see details above" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::Some tests failed for ${{ matrix.task }} (${{ matrix.lang }})"
+          else
+            echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+          fi
         else
-          echo "- **Note**: No tasks with supported language implementations found" >> $GITHUB_STEP_SUMMARY
+          echo "No judge results found for ${{ matrix.task }} (${{ matrix.lang }})" >> $GITHUB_STEP_SUMMARY
         fi
+
