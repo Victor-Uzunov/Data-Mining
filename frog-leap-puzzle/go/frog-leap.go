@@ -5,143 +5,110 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func solveDFS(N int) []string {
-	L := 2*N + 1
-	start := make([]byte, L)
-	goal := make([]byte, L)
+func generatePathIter(n int) <-chan string {
+	ch := make(chan string)
 
-	for i := 0; i < N; i++ {
-		start[i] = '>'
-		goal[i] = '<'
-	}
-	start[N] = '_'
-	goal[N] = '_'
-	for i := N + 1; i < L; i++ {
-		start[i] = '<'
-		goal[i] = '>'
-	}
+	go func() {
+		defer close(ch)
 
-	startKey := string(start)
-	goalKey := string(goal)
+		length := 2*n + 1
+		state := make([]rune, length)
 
-	visited := make(map[string]bool)
-	var path []string
-	found := false
-
-	var dfs func(state []byte) bool
-	dfs = func(state []byte) bool {
-		if found {
-			return true
+		for i := 0; i < n; i++ {
+			state[i] = '>'
 		}
-		key := string(state)
-		if key == goalKey {
-			path = append(path, key)
-			found = true
-			return true
+		state[n] = '_'
+		for i := n + 1; i < length; i++ {
+			state[i] = '<'
 		}
-		visited[key] = true
 
-		for i := 0; i < L; i++ {
-			if state[i] == '>' {
-				if i+2 < L && state[i+1] != '_' && state[i+2] == '_' {
-					newState := make([]byte, L)
-					copy(newState, state)
-					newState[i], newState[i+2] = '_', '>'
-					k := string(newState)
-					if !visited[k] {
-						if dfs(newState) {
-							path = append(path, key)
-							return true
-						}
-					}
-				}
-				if i+1 < L && state[i+1] == '_' {
-					newState := make([]byte, L)
-					copy(newState, state)
-					newState[i], newState[i+1] = '_', '>'
-					k := string(newState)
-					if !visited[k] {
-						if dfs(newState) {
-							path = append(path, key)
-							return true
-						}
-					}
+		target := strings.Repeat("<", n) + "_" + strings.Repeat(">", n)
+		emptyIdx := n
+		moveRight := true
+
+		ch <- string(state)
+
+		for string(state) != target {
+			moved := false
+
+			if emptyIdx > 1 && state[emptyIdx-2] == '>' && state[emptyIdx-1] == '<' {
+				state[emptyIdx], state[emptyIdx-2] = state[emptyIdx-2], state[emptyIdx]
+				emptyIdx -= 2
+				moved = true
+			} else if emptyIdx < length-2 && state[emptyIdx+2] == '<' && state[emptyIdx+1] == '>' {
+				state[emptyIdx], state[emptyIdx+2] = state[emptyIdx+2], state[emptyIdx]
+				emptyIdx += 2
+				moved = true
+			} else {
+				if moveRight && emptyIdx > 0 && state[emptyIdx-1] == '>' {
+					state[emptyIdx], state[emptyIdx-1] = state[emptyIdx-1], state[emptyIdx]
+					emptyIdx--
+					moveRight = false
+					moved = true
+				} else if !moveRight && emptyIdx < length-1 && state[emptyIdx+1] == '<' {
+					state[emptyIdx], state[emptyIdx+1] = state[emptyIdx+1], state[emptyIdx]
+					emptyIdx++
+					moveRight = true
+					moved = true
+				} else if emptyIdx > 0 && state[emptyIdx-1] == '>' {
+					state[emptyIdx], state[emptyIdx-1] = state[emptyIdx-1], state[emptyIdx]
+					emptyIdx--
+					moveRight = false
+					moved = true
+				} else if emptyIdx < length-1 && state[emptyIdx+1] == '<' {
+					state[emptyIdx], state[emptyIdx+1] = state[emptyIdx+1], state[emptyIdx]
+					emptyIdx++
+					moveRight = true
+					moved = true
 				}
 			}
-		}
 
-		for i := L - 1; i >= 0; i-- {
-			if state[i] == '<' {
-				if i-2 >= 0 && state[i-1] != '_' && state[i-2] == '_' {
-					newState := make([]byte, L)
-					copy(newState, state)
-					newState[i], newState[i-2] = '_', '<'
-					k := string(newState)
-					if !visited[k] {
-						if dfs(newState) {
-							path = append(path, key)
-							return true
-						}
-					}
-				}
-				if i-1 >= 0 && state[i-1] == '_' {
-					newState := make([]byte, L)
-					copy(newState, state)
-					newState[i], newState[i-1] = '_', '<'
-					k := string(newState)
-					if !visited[k] {
-						if dfs(newState) {
-							path = append(path, key)
-							return true
-						}
-					}
-				}
+			if !moved {
+				break
 			}
+
+			ch <- string(state)
 		}
+	}()
 
-		return false
-	}
-
-	dfs([]byte(startKey))
-	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
-		path[i], path[j] = path[j], path[i]
-	}
-	return path
+	return ch
 }
 
 func main() {
-	timeOnly := os.Getenv("FMI_TIME_ONLY") == "1"
-
-	scanner := bufio.NewScanner(os.Stdin)
-	if !scanner.Scan() {
-		_, err := fmt.Fprintln(os.Stderr, "Error reading input")
-		if err != nil {
-			panic(err)
-		}
-		os.Exit(1)
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil && err.Error() != "EOF" {
+		return
 	}
 
-	N, err := strconv.Atoi(scanner.Text())
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return
+	}
+
+	n, err := strconv.Atoi(input)
 	if err != nil {
-		_, err = fmt.Fprintln(os.Stderr, "Invalid input: not an integer")
-		if err != nil {
-			panic(err)
-		}
-		os.Exit(1)
+		return
 	}
+
+	measureOnly := os.Getenv("FMI_TIME_ONLY") != ""
 
 	start := time.Now()
-	solution := solveDFS(N)
-	duration := time.Since(start)
+	sequence := generatePathIter(n)
 
-	if timeOnly {
-		fmt.Printf("# TIMES_MS: alg=%d\n", duration.Nanoseconds()/1000000)
+	if measureOnly {
+		for range sequence {
+		}
 	} else {
-		for _, state := range solution {
+		for state := range sequence {
 			fmt.Println(state)
 		}
 	}
+
+	elapsedMs := int(time.Since(start).Milliseconds())
+	fmt.Printf("# TIMES_MS: alg=%d\n", elapsedMs)
 }
