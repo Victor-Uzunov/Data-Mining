@@ -9,60 +9,61 @@ import (
 	"time"
 )
 
-func generatePathIter(N int) <-chan string {
+func generatePathIter(n int) <-chan string {
 	ch := make(chan string)
 
 	go func() {
 		defer close(ch)
 
-		s := make([]rune, 2*N+1)
-		for i := 0; i < N; i++ {
-			s[i] = '>'
+		length := 2*n + 1
+		state := make([]rune, length)
+
+		for i := 0; i < n; i++ {
+			state[i] = '>'
 		}
-		s[N] = '_'
-		for i := N + 1; i < 2*N+1; i++ {
-			s[i] = '<'
+		state[n] = '_'
+		for i := n + 1; i < length; i++ {
+			state[i] = '<'
 		}
 
-		target := strings.Repeat("<", N) + "_" + strings.Repeat(">", N)
-		L := 2*N + 1
-		blank := N
-		moveBlankRight := true
+		target := strings.Repeat("<", n) + "_" + strings.Repeat(">", n)
+		emptyIdx := n
+		moveRight := true
 
-		ch <- string(s)
+		ch <- string(state)
 
-		for string(s) != target {
+		for string(state) != target {
 			moved := false
 
-			if blank > 1 && s[blank-2] == '>' && s[blank-1] == '<' {
-				s[blank], s[blank-2] = s[blank-2], s[blank]
-				blank -= 2
+			if emptyIdx > 1 && state[emptyIdx-2] == '>' && state[emptyIdx-1] == '<' {
+				state[emptyIdx], state[emptyIdx-2] = state[emptyIdx-2], state[emptyIdx]
+				emptyIdx -= 2
 				moved = true
-			} else if blank < L-2 && s[blank+2] == '<' && s[blank+1] == '>' {
-				s[blank], s[blank+2] = s[blank+2], s[blank]
-				blank += 2
+			} else if emptyIdx < length-2 && state[emptyIdx+2] == '<' && state[emptyIdx+1] == '>' {
+				state[emptyIdx], state[emptyIdx+2] = state[emptyIdx+2], state[emptyIdx]
+				emptyIdx += 2
 				moved = true
 			} else {
-				if moveBlankRight && blank > 0 && s[blank-1] == '>' {
-					s[blank], s[blank-1] = s[blank-1], s[blank]
-					blank -= 1
+				if moveRight && emptyIdx > 0 && state[emptyIdx-1] == '>' {
+					state[emptyIdx], state[emptyIdx-1] = state[emptyIdx-1], state[emptyIdx]
+					emptyIdx--
+					moveRight = false
 					moved = true
-					moveBlankRight = false
-				} else if !moveBlankRight && blank < L-1 && s[blank+1] == '<' {
-					s[blank], s[blank+1] = s[blank+1], s[blank]
-					blank += 1
+				} else if !moveRight && emptyIdx < length-1 && state[emptyIdx+1] == '<' {
+					state[emptyIdx], state[emptyIdx+1] = state[emptyIdx+1], state[emptyIdx]
+					emptyIdx++
+					moveRight = true
 					moved = true
-					moveBlankRight = true
-				} else if blank > 0 && s[blank-1] == '>' {
-					s[blank], s[blank-1] = s[blank-1], s[blank]
-					blank -= 1
+				} else if emptyIdx > 0 && state[emptyIdx-1] == '>' {
+					state[emptyIdx], state[emptyIdx-1] = state[emptyIdx-1], state[emptyIdx]
+					emptyIdx--
+					moveRight = false
 					moved = true
-					moveBlankRight = false
-				} else if blank < L-1 && s[blank+1] == '<' {
-					s[blank], s[blank+1] = s[blank+1], s[blank]
-					blank += 1
+				} else if emptyIdx < length-1 && state[emptyIdx+1] == '<' {
+					state[emptyIdx], state[emptyIdx+1] = state[emptyIdx+1], state[emptyIdx]
+					emptyIdx++
+					moveRight = true
 					moved = true
-					moveBlankRight = true
 				}
 			}
 
@@ -70,7 +71,7 @@ func generatePathIter(N int) <-chan string {
 				break
 			}
 
-			ch <- string(s)
+			ch <- string(state)
 		}
 	}()
 
@@ -89,27 +90,25 @@ func main() {
 		return
 	}
 
-	N, err := strconv.Atoi(input)
+	n, err := strconv.Atoi(input)
 	if err != nil {
 		return
 	}
 
-	timeOnly := os.Getenv("FMI_TIME_ONLY") != ""
+	measureOnly := os.Getenv("FMI_TIME_ONLY") != ""
 
-	t0 := time.Now()
+	start := time.Now()
+	sequence := generatePathIter(n)
 
-	gen := generatePathIter(N)
-
-	if timeOnly {
-		for range gen {
-
+	if measureOnly {
+		for range sequence {
 		}
 	} else {
-		for state := range gen {
+		for state := range sequence {
 			fmt.Println(state)
 		}
 	}
 
-	tMs := int(time.Since(t0).Milliseconds())
-	fmt.Printf("# TIMES_MS: alg=%d\n", tMs)
+	elapsedMs := int(time.Since(start).Milliseconds())
+	fmt.Printf("# TIMES_MS: alg=%d\n", elapsedMs)
 }
