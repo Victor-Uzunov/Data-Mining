@@ -155,15 +155,15 @@ make deps
 
    func main() {
        timeOnly := os.Getenv("FMI_TIME_ONLY") == "1"
-       
+
        scanner := bufio.NewScanner(os.Stdin)
        scanner.Scan()
        n, _ := strconv.Atoi(scanner.Text())
-       
+
        start := time.Now()
        result := solve(n)
        duration := time.Since(start)
-       
+
        if timeOnly {
            fmt.Printf("# TIMES_MS: alg=%d\n", duration.Nanoseconds()/1000000)
        } else {
@@ -213,7 +213,7 @@ make init-task TASK=your-algorithm-name
 
 # Implement your solution in your preferred language:
 # your-algorithm-name/go/solution.go (Go)
-# your-algorithm-name/python/solution.py (Python) 
+# your-algorithm-name/python/solution.py (Python)
 # your-algorithm-name/java/Solution.java (Java)
 # your-algorithm-name/cpp/solution.cpp (C++)
 
@@ -274,6 +274,7 @@ All solutions should meet these standards:
 Currently implemented algorithms:
 
 - **frog-leap-puzzle** - Classic frog leap puzzle with optimal DFS solution
+- **n-puzzle** - Sliding puzzle solver using IDA* algorithm with Manhattan distance heuristic
 
 ## Need Help?
 
@@ -291,3 +292,4 @@ Currently implemented algorithms:
 ## License
 
 This project is for educational purposes.
+
