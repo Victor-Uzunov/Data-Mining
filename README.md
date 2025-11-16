@@ -275,6 +275,7 @@ Currently implemented algorithms:
 
 - **frog-leap-puzzle** - Classic frog leap puzzle with optimal DFS solution
 - **n-puzzle** - Sliding puzzle solver using IDA* algorithm with Manhattan distance heuristic
+- **n-queens** - N-Queens problem solver using hybrid Min-Conflicts + constructive algorithms
 
 ## Need Help?
 
@@ -292,4 +293,3 @@ Currently implemented algorithms:
 ## License
 
 This project is for educational purposes.
-
