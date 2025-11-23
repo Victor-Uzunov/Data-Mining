@@ -277,6 +277,7 @@ Currently implemented algorithms:
 - **n-puzzle** - Sliding puzzle solver using IDA* algorithm with Manhattan distance heuristic
 - **n-queens** - N-Queens problem solver using hybrid Min-Conflicts + constructive algorithms
 - **knapsack** - 0/1 Knapsack problem solver using Genetic Algorithm with hybrid initialization
+- **tsp** - Traveling Salesman Problem solver using hybrid Genetic Algorithm with 2-opt local search
 
 ## Need Help?
 
