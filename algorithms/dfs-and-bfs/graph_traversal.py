@@ -73,6 +73,15 @@ def depth_limited_search(graph: dict, start_node: str, goal_node: str, limit: in
 
     return None
 
+def iterative_deepening_search(graph: dict, start_node: str, goal_node: str, max_depth: int) -> list or None:
+    for limit in range(max_depth + 1):
+        result = depth_limited_search(graph, start_node, goal_node, limit)
+        if result is not None:
+            return result
+        if result is not None:
+            return result
+    return None
+
 
 if __name__ == "__main__":
     graph = {
