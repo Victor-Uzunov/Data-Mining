@@ -60,6 +60,19 @@ def breadth_first_search(graph: Graph, start_node: str):
 
     return result
 
+def depth_limited_search(graph: dict, start_node: str, goal_node: str, limit: int) -> list or None:
+    stack = [(start_node, [start_node], 0)]
+    while stack:
+        cur_node, path, depth = stack.pop()
+        if cur_node == goal_node:
+            return path
+        if depth < limit:
+            for nei in reversed(graph.get(cur_node, [])):
+                if nei not in path:
+                    stack.append((nei, path + [nei], depth + 1))
+
+    return None
+
 
 if __name__ == "__main__":
     graph = {
@@ -79,3 +92,12 @@ if __name__ == "__main__":
 
     print("BFS Traversal Order:")
     print(breadth_first_search(graph, "A"))
+
+    start = "A"
+    goal = "F"
+    limit = 2
+    path = depth_limited_search(graph, start, goal, limit)
+    if path:
+        print(f"Path from {start} to {goal} within depth limit {limit}: {path}")
+    else:
+        print(f"No path found from {start} to {goal} within depth limit {limit}.")
