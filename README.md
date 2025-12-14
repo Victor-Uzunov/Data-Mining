@@ -279,6 +279,7 @@ Currently implemented algorithms:
 - **knapsack** - 0/1 Knapsack problem solver using Genetic Algorithm with hybrid initialization
 - **tsp** - Traveling Salesman Problem solver using hybrid Genetic Algorithm with 2-opt local search
 - **tic-tac-toe** - Tic-Tac-Toe AI using Minimax algorithm with alpha-beta pruning for optimal play
+- **iris** - Iris flower classification using k-NN with k-fold cross-validation for hyperparameter tuning
 
 ## Need Help?
 
