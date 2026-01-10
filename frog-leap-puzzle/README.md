@@ -1,46 +1,59 @@
-# Frog Leap Puzzle
+# Frog Leap Puzzle — Search Algorithms and State Space Modeling
 
-## Problem Description
+## Problem
+You have N frogs on the left (→) and N frogs on the right (←) separated by one empty lily pad. Frogs can:
+- Move forward onto an adjacent empty pad
+- Jump over exactly one frog into an empty pad
+Goal: swap the positions of the two groups using valid moves.
 
-The Frog Leap Puzzle is a classic puzzle where:
-- **Board length**: 2N + 1 cells
-- **Initial state**: N frogs facing right (`>`), empty cell (`_`), N frogs facing left (`<`)
-- **Goal**: Swap the frogs so left side has `<` frogs and right side has `>` frogs
+## State Representation
+- A linear array of length 2N + 1, e.g. for N=3: [→,→,→,_,←,←,←]
+- Actions: for each frog, check if a 1-step move or 2-step jump is valid
+- Terminal state: [←,←,←,_,→,→,→]
 
-### Rules
-- Frogs move only in the direction they face
-- A frog can step into an adjacent empty cell in front of it
-- A frog can jump over exactly one frog into an empty cell (jump length = 2)
+## Search Formulations
+This is a classic single-agent search problem over a finite state space.
 
-### Example
+### Breadth-First Search (BFS)
+- Explores states in layers (shortest number of moves)
+- Optimal wrt number of moves (if all moves cost 1)
+- Time/space: O(b^d), where b is branching factor, d is depth of optimal solution
+- Good baseline to prove minimal steps
 
-For N=2:
-```
-Input: 2
-Output:
->>_<<
->_><<
-><>_<
-><><_
-><_<>
-_<><>
-<_><>
-<<>_>
-<<_>>
-```
+### Depth-First Search (DFS)
+- Explores deeply first; may find long non-minimal solution
+- Lower memory vs BFS; not guaranteed to find optimal path
+- Time: O(b^m), m = maximum depth; Space: O(bm)
 
-## Testing
+### A* (Optional)
+- If you define a heuristic like: number of frogs not yet crossing, or distance from goal patterns
+- Can reduce search vs BFS while still being optimal (with admissible heuristic)
 
-To test this solution:
+## Valid Move Rules (Local Constraints)
+For index i:
+- → frog (left group): can move right if pad i+1 empty; can jump right if frog at i+1 and pad i+2 empty
+- ← frog (right group): can move left if pad i−1 empty; can jump left if frog at i−1 and pad i−2 empty
 
-```bash
-# From repository root:
-make run TASK=frog-leap-puzzle N=3
-make test TASK=frog-leap-puzzle
-make build TASK=frog-leap-puzzle
+## Pseudocode (BFS)
+- Model state as string/list; compute neighbors by applying valid moves
+- Push initial state to queue; keep visited set
+- While queue not empty: pop; if goal → reconstruct path; else push neighbors not visited
 
-# Or run directly:
-echo "3" | ./frog-leap-puzzle/go/frog-leap
-```
+## Complexity Considerations
+- State count is finite: each position is a permutation of (N left frogs, N right frogs, 1 empty). Total states: C(2N+1, N, N, 1) = multinomial.
+- BFS can be costly for larger N due to memory; iterative deepening or A* helps.
 
-The solution supports timing mode with `FMI_TIME_ONLY=1` environment variable.
+## Data Mining Angle
+- This task demonstrates search strategies and state modeling, foundational for feature search, rule discovery, and heuristic design
+- A* heuristic design mirrors evaluation functions in model selection
+
+## How to Run (Go version)
+- Build & run with the main Makefile:
+  - make run frog-leap-puzzle
+  - make test frog-leap-puzzle
+
+## Exam Tips
+- Clearly define state, actions, goal
+- Explain BFS vs DFS trade-offs (optimality vs memory)
+- If asked about optimal solutions: BFS with unit costs
+- If asked about heuristics: design an admissible one and explain why it never overestimates

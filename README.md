@@ -1,299 +1,352 @@
-# Algorithms Solutions
+# 🧠 Algorithms Solutions
 
-A collection of algorithm implementations with automated testing and CI/CD integration.
+A collection of algorithm implementations in **Go** and **Python**. This repository contains solutions to various algorithmic problems including search algorithms, optimization problems, and AI/ML challenges.
 
-## Repository Structure
+## 🚀 Quick Start
 
-Each algorithm solution is organized in its own directory with a consistent structure:
+### Prerequisites
 
-```
-algorithms-solutions/
-├── .github/workflows/
-│   └── test-all.yml          # Generic CI/CD pipeline for all tasks
-├── .gitignore                # Global gitignore
-├── go.mod                    # Go module for Go solutions
-├── Makefile                  # Generic Makefile for all tasks
-├── README.md                 # This file
-├── requirements.txt          # Python dependencies for testing
-└── <task-name>/              # Individual algorithm solutions
-    ├── README.md             # Problem description and testing
-    ├── go/                   # Go implementation (optional)
-    │   └── solution.go
-    ├── python/               # Python implementation (optional)
-    │   └── solution.py
-    ├── java/                 # Java implementation (optional)
-    │   └── Solution.java
-    └── cpp/                  # C++ implementation (optional)
-        └── solution.cpp
-```
+- **Go** (1.21+) - for Go solutions
+- **Python** (3.8+) - for Python solutions
 
-## Supported Programming Languages
+### Installation
 
-We support multiple programming languages for algorithm implementations. Contributors can choose their preferred language or implement solutions in multiple languages:
-
-### 🔥 **Go** (Primary)
-- **File**: `<task-name>/go/solution.go`
-- **Build**: Compiles to native binary
-- **Run**: `./solution`
-- **Requirements**: Go 1.21+
-
-### 🐍 **Python**
-- **File**: `<task-name>/python/solution.py`
-- **Build**: No compilation needed
-- **Run**: `python3 solution.py`
-- **Requirements**: Python 3.11+
-
-### ☕ **Java**
-- **File**: `<task-name>/java/Solution.java`
-- **Build**: Compiles to `.class` files
-- **Run**: `java Solution`
-- **Requirements**: Java 17+
-
-### ⚡ **C++**
-- **File**: `<task-name>/cpp/solution.cpp`
-- **Build**: Compiles with `g++`
-- **Run**: `./solution`
-- **Requirements**: GCC/G++ compiler
-
-### Language Priority
-When multiple implementations exist for a task, the system auto-detects in this order:
-1. Go
-2. Python
-3. Java
-4. C++
-
-You can specify a language explicitly:
+1. Clone the repository:
 ```bash
-make run TASK=my-algorithm LANGUAGE=python N=5
-```
-
-## Quick Start
-
-### Using the Generic System
-
-The root-level Makefile provides commands that work with any task:
-
-```bash
-# List all available tasks
-make list-tasks
-
-# Build a specific task (auto-detects language)
-make build TASK=frog-leap-puzzle
-
-# Run a task with input (works with any supported language)
-make run TASK=frog-leap-puzzle N=3 LANG=go
-make run TASK=frog-leap-puzzle N=3 LANG=python
-make run TASK=frog-leap-puzzle N=3 LANG=java
-
-# Test a task (tests all available language implementations)
-make test TASK=frog-leap-puzzle
-
-# Format code for a task
-make fmt TASK=frog-leap-puzzle
-```
-
-### Batch Operations
-
-```bash
-# Build all tasks
-make build-all
-
-# Test all tasks
-make test-all
-
-# Clean all tasks
-make clean-all
-```
-
-### Creating a New Task
-
-```bash
-# Initialize a new task with basic structure
-make init-task TASK=new-algorithm
-
-# This creates:
-# - new-algorithm/README.md (template)
-# - new-algorithm/go/solution.go (template with proper structure)
-```
-
-## Development Workflow
-
-### Setting Up Development Environment
-
-```bash
-# Install development dependencies
-make deps
-
-# This installs:
-# - fmi-ai-judge (for testing)
-# - goimports (for code formatting)
-```
-
-### Adding a New Solution
-
-1. **Create the task structure:**
-   ```bash
-   make init-task TASK=my-algorithm
-   ```
-
-2. **Implement your solution in `my-algorithm/go/solution.go`:**
-   ```go
-   package main
-
-   import (
-       "bufio"
-       "fmt"
-       "os"
-       "strconv"
-       "time"
-   )
-
-   func solve(input int) []string {
-       // Your algorithm implementation
-       return []string{"result"}
-   }
-
-   func main() {
-       timeOnly := os.Getenv("FMI_TIME_ONLY") == "1"
-
-       scanner := bufio.NewScanner(os.Stdin)
-       scanner.Scan()
-       n, _ := strconv.Atoi(scanner.Text())
-
-       start := time.Now()
-       result := solve(n)
-       duration := time.Since(start)
-
-       if timeOnly {
-           fmt.Printf("# TIMES_MS: alg=%d\n", duration.Nanoseconds()/1000000)
-       } else {
-           for _, line := range result {
-               fmt.Println(line)
-           }
-       }
-   }
-   ```
-
-3. **Test your solution:**
-   ```bash
-   make build TASK=my-algorithm
-   make run TASK=my-algorithm N=5
-   make test TASK=my-algorithm
-   ```
-
-## Contributing
-
-Here's how to add your algorithm solution:
-
-### 1. Fork and Clone
-
-```bash
-git clone https://github.com/YOUR_USERNAME/algorithms-solutions.git
+git clone <repository-url>
 cd algorithms-solutions
 ```
 
-### 2. Set Up Development Environment
-
+2. Install Python dependencies (optional, handled automatically):
 ```bash
-# Install dependencies
-make deps
-
-# Verify the existing tests pass
-make test-all
+pip install -r requirements.txt
 ```
 
-### 3. Create Your Solution
+## 📋 Available Commands
+
+### Discovery & Help
 
 ```bash
-# Create a new branch for your contribution
-git checkout -b add-your-algorithm-name
-
-# Initialize your new algorithm
-make init-task TASK=your-algorithm-name
-
-# Implement your solution in your preferred language:
-# your-algorithm-name/go/solution.go (Go)
-# your-algorithm-name/python/solution.py (Python)
-# your-algorithm-name/java/Solution.java (Java)
-# your-algorithm-name/cpp/solution.cpp (C++)
-
-# Update your-algorithm-name/README.md with problem description
+make              # Show help menu
+make help         # Show detailed help
+make ls           # List all available tasks
 ```
 
-### 4. Test Your Solution
+### Running Tasks
+
+The simplest way to run any task:
 
 ```bash
-# Build and test your solution
-make build TASK=your-algorithm-name
-make run TASK=your-algorithm-name N=10 LANG=go
-make test TASK=your-algorithm-name
-
-# Ensure all existing tests still pass
-make test-all
-
+make run <task-name>          # Auto-detects language and runs
+make run frog-leap-puzzle     # Example: run frog-leap-puzzle
+make run iris                 # Example: run iris dataset classifier
 ```
 
-### 5. Submit a Pull Request
+### Building Tasks
 
-1. **Commit your changes:**
+For compiled languages (Go):
+
+```bash
+make build <task-name>        # Build the task
+make build n-queens           # Example
+```
+
+### Testing Tasks
+
+Test with the fmi-ai-judge framework:
+
+```bash
+make test <task-name>         # Build and test
+make test tsp                 # Example: test traveling salesman
+```
+
+### Cleaning
+
+```bash
+make clean <task-name>        # Clean specific task
+make clean-venvs              # Clean all Python virtual environments
+```
+
+## 🐍 Python-Specific Commands
+
+Python tasks automatically use **temporary virtual environments** that are cleaned up after execution. No manual venv management needed!
+
+### Run with Temporary venv (Recommended)
+
+```bash
+make py <task-name>           # Run Python task with auto-cleanup venv
+make py iris                  # Example
+make py naive-bayes-classifier
+```
+
+### Create Persistent venv (For Development)
+
+If you want to develop and need a persistent environment:
+
+```bash
+make venv <task-name>         # Create .venv in task directory
+cd <task-name>/python
+source .venv/bin/activate     # Activate the environment
+```
+
+### Clean All Python venvs
+
+```bash
+make clean-venvs              # Remove all Python virtual environments
+```
+
+## 🆕 Creating New Tasks
+
+Create a new task structure quickly:
+
+```bash
+make new <task-name>          # Creates directories and templates
+make new my-algorithm         # Example
+
+# This creates:
+# my-algorithm/
+#   ├── go/main.go           (Go template)
+#   ├── python/solution.py   (Python template)
+#   └── README.md            (Task documentation)
+```
+
+## 📁 Project Structure
+
+```
+algorithms-solutions/
+├── Makefile                  # Main build system (single source of truth)
+├── README.md                 # This file
+├── requirements.txt          # Python dependencies
+├── venv-run.sh              # Auto-venv script (used internally)
+├── python-with-venv.sh      # Venv wrapper (used internally)
+│
+├── algorithms/               # General algorithms
+│   ├── beam-search/
+│   ├── dfs-and-bfs/
+│   ├── dijkstra/
+│   ├── genetic/
+│   └── minmax/
+│
+├── frog-leap-puzzle/        # Frog leap puzzle solver
+│   ├── go/
+│   └── README.md
+│
+├── n-queens/                # N-Queens problem
+├── tsp/                     # Traveling Salesman Problem
+├── knapsack/                # Knapsack problem
+├── iris/                    # Iris dataset classifier
+├── naive-bayes-classifier/  # Naive Bayes implementation
+└── tic-tac-toe/            # Tic-tac-toe with AI
+```
+
+**Note:** Each task contains only the necessary files. No task-level Makefiles needed - the main Makefile handles everything!
+
+Each task typically contains:
+- `go/` - Go implementation (optional)
+- `python/` - Python implementation (optional)
+- `README.md` - Task-specific documentation
+
+## 💡 Usage Examples
+
+### Example 1: Run a Go program
+```bash
+make run frog-leap-puzzle
+# Auto-detects Go, compiles and runs
+```
+
+### Example 2: Run a Python program with automatic venv
+```bash
+make py iris
+# Creates temp venv, installs deps, runs, then cleans up
+```
+
+### Example 3: Develop a Python task
+```bash
+# Create persistent venv for development
+make venv naive-bayes-classifier
+
+# Activate it manually
+cd naive-bayes-classifier/python
+source .venv/bin/activate
+
+# Now you can edit and run directly
+python naive-bayes-classifier.py
+```
+
+### Example 4: Create and run a new task
+```bash
+make new bubble-sort
+# Edit the generated files
+# Then run it
+make run bubble-sort
+```
+
+## 🔧 How Python Virtual Environments Work
+
+### Automatic (Temporary) venv
+When you run `make py <task>` or `make run <python-task>`:
+1. A temporary venv is created in `/tmp/`
+2. Dependencies from `requirements.txt` are installed
+3. Your script runs
+4. The venv is automatically deleted
+
+**Pros:** No cleanup needed, always fresh environment  
+**Cons:** Slower for repeated runs
+
+### Manual (Persistent) venv
+When you run `make venv <task>`:
+1. A `.venv/` folder is created in `<task>/python/`
+2. Dependencies are installed once
+3. You manually activate/deactivate
+4. Faster for development
+
+**Pros:** Fast, great for development  
+**Cons:** Need to manage manually
+
+## 🎯 Task Categories
+
+### Search & Traversal
+- **dfs-and-bfs** - Depth-first and breadth-first search
+- **beam-search** - Beam search algorithm
+- **dijkstra** - Dijkstra's shortest path
+
+### Optimization
+- **genetic** - Genetic algorithms and crossovers
+- **tsp** - Traveling Salesman Problem
+- **knapsack** - 0/1 Knapsack problem
+
+### Game Theory & AI
+- **minmax** - Minimax algorithm
+- **tic-tac-toe** - Tic-tac-toe with AI
+- **frog-leap-puzzle** - Frog leap puzzle solver
+
+### Constraint Satisfaction
+- **n-queens** - N-Queens problem
+- **n-puzzle** - N-puzzle solver
+
+### Machine Learning
+- **iris** - Iris dataset classifier
+- **naive-bayes-classifier** - Naive Bayes from scratch
+
+## 🛠️ Advanced Usage
+
+### Language Priority
+If a task has both Go and Python implementations, auto-detect prefers:
+1. Go
+2. Python
+
+You can always explicitly run Python with `make py <task>`.
+
+### Custom Requirements
+To add task-specific Python dependencies:
+1. Create `<task>/python/requirements.txt`
+2. The venv system will automatically install them
+
+### Testing with fmi-ai-judge
+Ensure `fmi-ai-judge` is installed:
+```bash
+pip install fmi-ai-judge
+```
+
+Then run tests:
+```bash
+make test <task-name>
+```
+
+## 📝 Development Workflow
+
+### Recommended workflow for new tasks:
+
+1. **Create the task structure:**
    ```bash
-   git add .
-   git commit -m "Add: your-algorithm-name solution in [Go/Python/Java/C++]"
-   git push origin add-your-algorithm-name
+   make new my-new-algorithm
    ```
 
-2. **Create a Pull Request** on GitHub from your branch to the main repository with:
-   - Clear description of the algorithm and problem solved
-   - Programming language(s) used
-   - Performance characteristics (time/space complexity)
-   - Test cases and expected outputs
+2. **Implement your solution:**
+   ```bash
+   cd my-new-algorithm/python
+   # Edit solution.py
+   ```
 
-### 6. Automated Testing
+3. **Test with temporary venv:**
+   ```bash
+   make py my-new-algorithm
+   ```
 
-Once you submit a PR, our CI pipeline will automatically:
-- ✅ Build your solution
-- ✅ Run correctness tests using `fmi-ai-judge`
-- ✅ Run performance benchmarks
-- ✅ Validate code formatting
-- ✅ Test timing mode functionality
+4. **For intensive development, create persistent venv:**
+   ```bash
+   make venv my-new-algorithm
+   cd my-new-algorithm/python
+   source .venv/bin/activate
+   # Now develop/test rapidly
+   ```
 
-The pipeline tests all solutions in parallel, so your changes won't break existing algorithms.
+5. **Clean up when done:**
+   ```bash
+   make clean my-new-algorithm
+   ```
 
-## Solution Requirements
+## 🧪 Testing & Validation
 
-All solutions should meet these standards:
+### Manual Testing
+```bash
+make run <task>              # Quick test
+```
 
-- **Correctness**: Pass all test cases
-- **Performance**: Handle specified input sizes efficiently
-- **Code Quality**: Well-formatted, readable Go code
-- **Timing Support**: Support `FMI_TIME_ONLY=1` environment variable
-- **Input/Output**: Read from stdin, write to stdout (exact format as specified)
+### Automated Testing
+```bash
+make test <task>             # Test with fmi-ai-judge
+```
 
-## Available Algorithms
+## 🤝 Contributing
 
-Currently implemented algorithms:
+1. Create a new task: `make new <task-name>`
+2. Implement your solution in Go or Python (or both!)
+3. Add a README.md describing the problem
+4. Test it: `make test <task-name>`
+5. Commit and push
 
-- **frog-leap-puzzle** - Classic frog leap puzzle with optimal DFS solution
-- **n-puzzle** - Sliding puzzle solver using IDA* algorithm with Manhattan distance heuristic
-- **n-queens** - N-Queens problem solver using hybrid Min-Conflicts + constructive algorithms
-- **knapsack** - 0/1 Knapsack problem solver using Genetic Algorithm with hybrid initialization
-- **tsp** - Traveling Salesman Problem solver using hybrid Genetic Algorithm with 2-opt local search
-- **tic-tac-toe** - Tic-Tac-Toe AI using Minimax algorithm with alpha-beta pruning for optimal play
-- **iris** - Iris flower classification using k-NN with k-fold cross-validation for hyperparameter tuning
+## 📚 Additional Resources
 
-## Need Help?
+- [fmi-ai-judge Documentation](https://pypi.org/project/fmi-ai-judge/)
+- Go: https://go.dev/doc/
+- Python: https://docs.python.org/3/
 
-- Check existing solutions for examples
-- Read task-specific README files for problem descriptions
-- Use `make help` for available commands
-- Open an issue for questions or bug reports
+## 🐛 Troubleshooting
 
-## Requirements
+### "Task not found"
+```bash
+make ls                      # Check available tasks
+```
 
-- **Go 1.21+** - for building solutions
-- **Python 3.11+** - for testing with fmi-ai-judge
-- **Make** - for using the build system
+### Python import errors
+```bash
+make clean-venvs             # Clean all venvs
+make py <task>               # Try again with fresh venv
+```
 
-## License
+### Build errors for Go
+```bash
+cd <task>/go
+go mod init <module-name>
+go mod tidy
+```
 
-This project is for educational purposes.
+## ⚡ What's New?
+
+### Simplified Build System
+- **Single Makefile** - No more task-level Makefiles cluttering your project
+- **Only Go & Python** - Removed Java and C++ complexity
+- **Auto-detection** - Smart language detection for each task
+- **Cleaner commands** - Simple, intuitive syntax like `make run <task>`
+- **Focus on individual tasks** - Work on one task at a time for better clarity
+
+## 📜 License
+
+See individual task directories for specific licensing information.
+
+---
+
+**Happy Coding! 🚀**
+
+For questions or issues, please open a GitHub issue.

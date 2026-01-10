@@ -1,2 +1,5 @@
 fmi-ai-judge
-
+pandas
+numpy
+scikit-learn
+ucimlrepo
