@@ -2,26 +2,25 @@
 name: Algorithm Solution
 about: Submit a new algorithm solution or improvement
 labels: enhancement
-
 ---
 
 ## Algorithm Description
 
-**Problem Statement:** 
-<!-- Provide a clear description of the problem this algorithm solves -->
+**Description:** 
 
-**Algorithm Type:** <!-- Optional: e.g., Sorting, Graph, Dynamic Programming, Greedy, etc. -->
 
-## Implementation Details
+## Implementation
 
-### Programming Language(s)
-<!-- Check all that apply -->
-- [ ] 🔥 Go (`go/solution.go`)
-- [ ] 🐍 Python (`python/solution.py`) 
-- [ ] ☕ Java (`java/Solution.java`)
-- [ ] ⚡ C++ (`cpp/solution.cpp`)
+**Language:**
+- [ ] Go
+- [ ] Python
 
-### Documentation
-- [ ] Updated `<task-name>/README.md` with problem description
+## Checklist
 
----
+- [ ] Added/updated `README.md` with algorithm theory and explanation
+- [ ] Code runs successfully with `make run <task>`
+- [ ] Tests pass (if applicable): `make test <task>`
+- [ ] Follows project structure: `<task>/go/` or `<task>/python/`
+
+## Notes
+<!-- Any additional context or implementation details -->
