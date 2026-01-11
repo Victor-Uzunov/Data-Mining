@@ -73,10 +73,11 @@ list:
 run: ## Run a task
 	@if [ -z "$(filter-out run,$@)" ] && [ -z "$(MAKECMDGOALS)" ]; then \
 		echo "$(RED)Error: Please specify a task name$(NC)"; \
-		echo "Usage: make run <task-name>"; \
+		echo "Usage: make run <task-name> [args...]"; \
 		exit 1; \
 	fi
 	@TASK="$(word 2,$(MAKECMDGOALS))"; \
+	EXTRA_ARGS="$(wordlist 3,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))"; \
 	if [ ! -d "$$TASK" ]; then \
 		echo "$(RED)Error: Task '$$TASK' not found$(NC)"; \
 		echo "Run 'make ls' to see available tasks"; \
@@ -95,9 +96,9 @@ run: ## Run a task
 		(cd $$TASK/go && go run .); \
 	elif [ "$$LANG" = "python" ]; then \
 		if [ -d "$$TASK/python/.venv" ]; then \
-			(cd $$TASK/python && . .venv/bin/activate && python *.py); \
+			(cd $$TASK/python && . .venv/bin/activate && python *.py $$EXTRA_ARGS); \
 		else \
-			(cd $$TASK/python && ../../venv-run.sh python *.py); \
+			(cd $$TASK/python && ../../venv-run.sh python *.py $$EXTRA_ARGS); \
 		fi; \
 	fi
 
