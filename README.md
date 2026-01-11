@@ -312,41 +312,6 @@ make test <task>             # Test with fmi-ai-judge
 - Go: https://go.dev/doc/
 - Python: https://docs.python.org/3/
 
-## 🐛 Troubleshooting
-
-### "Task not found"
-```bash
-make ls                      # Check available tasks
-```
-
-### Python import errors
-```bash
-make clean-venvs             # Clean all venvs
-make py <task>               # Try again with fresh venv
-```
-
-### Build errors for Go
-```bash
-cd <task>/go
-go mod init <module-name>
-go mod tidy
-```
-
-## ⚡ What's New?
-
-### Simplified Build System
-- **Single Makefile** - No more task-level Makefiles cluttering your project
-- **Only Go & Python** - Removed Java and C++ complexity
-- **Auto-detection** - Smart language detection for each task
-- **Cleaner commands** - Simple, intuitive syntax like `make run <task>`
-- **Focus on individual tasks** - Work on one task at a time for better clarity
-
-## 📜 License
-
-See individual task directories for specific licensing information.
-
----
-
 **Happy Coding! 🚀**
 
 For questions or issues, please open a GitHub issue.
