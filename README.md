@@ -1,6 +1,7 @@
 # 🧠 Algorithms Solutions
 
 A collection of algorithm implementations in **Go** and **Python**. This repository contains solutions to various algorithmic problems including search algorithms, optimization problems, and AI/ML challenges.
+You can find more details and theory for the course in this github - https://github.com/ElitsaY/AI_FMI_course
 
 ## 🚀 Quick Start
 
