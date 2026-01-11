@@ -40,6 +40,7 @@ make run <task-name>          # Auto-detects language and runs
 make run frog-leap-puzzle     # Example: Go
 make run iris                 # Example: Python
 make run decision-tree        # Example: Python (ID3)
+make run neural-networks      # Example: Python (MLP, interactive)
 ```
 
 ### Building Tasks (Go)
@@ -121,6 +122,7 @@ Task READMEs include theory, pseudocode, complexity, and exam tips:
 - Naive Bayes Classifier — MAP rule, smoothing, variants
 - Tic-Tac-Toe — Minimax and alpha-beta pruning
 - Decision Tree — ID3 (entropy, information gain), pruning (REP)
+- Neural Networks — MLP activations (sigmoid/tanh), backpropagation, XOR learnability
 
 ## 🔧 Troubleshooting
 
