@@ -25,30 +25,36 @@ help:
 	@echo ""
 	@echo "$(GREEN)📋 Quick Start:$(NC)"
 	@echo "  make ls                    - List all available tasks"
-	@echo "  make run <task>            - Run a task (auto-detects language)"
-	@echo "  make test <task>           - Build and test a task"
+	@echo "  make run TASK=<name> [LANG=go|python] - Run a task"
+	@echo "  make test TASK=<name> [LANG=go|python] - Build and test a task"
 	@echo ""
 	@echo "$(GREEN)🔧 Common Commands:$(NC)"
-	@echo "  make run <task>            - Run task (e.g., make run frog-leap-puzzle)"
-	@echo "  make test <task>           - Test task with fmi-ai-judge"
-	@echo "  make build <task>          - Build task (for Go)"
-	@echo "  make clean <task>          - Clean build artifacts"
+	@echo "  make run TASK=<name>       - Run task (prompts if both exist)"
+	@echo "  make run TASK=<name> LANG=go       - Run Go implementation"
+	@echo "  make run TASK=<name> LANG=python   - Run Python implementation"
+	@echo "  make test TASK=<name>      - Test task with fmi-ai-judge"
+	@echo "  make test TASK=<name> LANG=go      - Test Go implementation"
+	@echo "  make test TASK=<name> LANG=python  - Test Python implementation"
+	@echo "  make build TASK=<name>     - Build task (for Go)"
+	@echo "  make clean TASK=<name>     - Clean build artifacts"
 	@echo "  make clean-all             - Remove ALL binaries and artifacts"
 	@echo ""
 	@echo "$(GREEN)🐍 Python-Specific:$(NC)"
-	@echo "  make py <task>             - Run Python task with temp venv (auto-cleanup)"
-	@echo "  make venv <task>           - Create persistent venv for development"
+	@echo "  make py TASK=<name>        - Run Python task with temp venv (auto-cleanup)"
+	@echo "  make venv TASK=<name>      - Create persistent venv for development"
 	@echo "  make clean-venvs           - Remove all Python virtual environments"
 	@echo ""
 	@echo "$(GREEN)🆕 Create New Task:$(NC)"
-	@echo "  make new <task>            - Create new task structure"
+	@echo "  make new TASK=<name>       - Create new task structure"
 	@echo ""
 	@echo "$(YELLOW)💡 Examples:$(NC)"
 	@echo "  make ls"
-	@echo "  make run frog-leap-puzzle"
-	@echo "  make test n-queens"
-	@echo "  make py iris"
-	@echo "  make venv naive-bayes-classifier"
+	@echo "  make run TASK=frog-leap-puzzle"
+	@echo "  make run TASK=knapsack LANG=go"
+	@echo "  make run TASK=iris LANG=python"
+	@echo "  make test TASK=n-queens LANG=go"
+	@echo "  make py TASK=iris"
+	@echo "  make venv TASK=naive-bayes-classifier"
 	@echo ""
 
 ls: list
@@ -71,34 +77,56 @@ list:
 
 # Makefile
 run: ## Run a task
-	@if [ -z "$(filter-out run,$@)" ] && [ -z "$(MAKECMDGOALS)" ]; then \
+	@if [ -z "$(TASK)" ]; then \
 		echo "$(RED)Error: Please specify a task name$(NC)"; \
-		echo "Usage: make run <task-name> [args...]"; \
+		echo "Usage: make run TASK=<task-name> [LANG=go|python]"; \
 		exit 1; \
 	fi
-	@TASK="$(word 2,$(MAKECMDGOALS))"; \
-	EXTRA_ARGS="$(wordlist 3,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))"; \
-	if [ ! -d "$$TASK" ]; then \
-		echo "$(RED)Error: Task '$$TASK' not found$(NC)"; \
+	@if [ ! -d "$(TASK)" ]; then \
+		echo "$(RED)Error: Task '$(TASK)' not found$(NC)"; \
 		echo "Run 'make ls' to see available tasks"; \
 		exit 1; \
-	fi; \
-	if [ -d "$$TASK/go" ]; then \
-		LANG="go"; \
-	elif [ -d "$$TASK/python" ]; then \
-		LANG="python"; \
-	else \
-		echo "$(RED)Error: No implementation found for '$$TASK'$(NC)"; \
+	fi
+	@HAS_GO=0; \
+	HAS_PYTHON=0; \
+	if [ -d "$(TASK)/go" ]; then HAS_GO=1; fi; \
+	if [ -d "$(TASK)/python" ]; then HAS_PYTHON=1; fi; \
+	if [ $$HAS_GO -eq 0 ] && [ $$HAS_PYTHON -eq 0 ]; then \
+		echo "$(RED)Error: No implementation found for '$(TASK)'$(NC)"; \
 		exit 1; \
 	fi; \
-	echo "$(GREEN)🚀 Running: $$TASK ($$LANG)$(NC)"; \
-	if [ "$$LANG" = "go" ]; then \
-		(cd $$TASK/go && go run .); \
-	elif [ "$$LANG" = "python" ]; then \
-		if [ -d "$$TASK/python/.venv" ]; then \
-			(cd $$TASK/python && . .venv/bin/activate && python *.py $$EXTRA_ARGS); \
+	SELECTED_LANG=""; \
+	if [ -n "$(LANG)" ] && [ "$(LANG)" != "C.UTF-8" ] && [ "$(LANG)" != "en_US.UTF-8" ]; then \
+		SELECTED_LANG="$(LANG)"; \
+	fi; \
+	if [ -n "$$SELECTED_LANG" ]; then \
+		if [ "$$SELECTED_LANG" = "go" ] && [ $$HAS_GO -eq 0 ]; then \
+			echo "$(RED)Error: Task '$(TASK)' has no Go implementation$(NC)"; \
+			exit 1; \
+		fi; \
+		if [ "$$SELECTED_LANG" = "python" ] && [ $$HAS_PYTHON -eq 0 ]; then \
+			echo "$(RED)Error: Task '$(TASK)' has no Python implementation$(NC)"; \
+			exit 1; \
+		fi; \
+	elif [ $$HAS_GO -eq 1 ] && [ $$HAS_PYTHON -eq 1 ]; then \
+		echo "$(YELLOW)Both Go and Python implementations available for '$(TASK)'$(NC)"; \
+		echo "Please specify which to run:"; \
+		echo "  make run TASK=$(TASK) LANG=go"; \
+		echo "  make run TASK=$(TASK) LANG=python"; \
+		exit 1; \
+	elif [ $$HAS_GO -eq 1 ]; then \
+		SELECTED_LANG="go"; \
+	else \
+		SELECTED_LANG="python"; \
+	fi; \
+	echo "$(GREEN)🚀 Running: $(TASK) ($$SELECTED_LANG)$(NC)"; \
+	if [ "$$SELECTED_LANG" = "go" ]; then \
+		(cd $(TASK)/go && go run .); \
+	elif [ "$$SELECTED_LANG" = "python" ]; then \
+		if [ -d "$(TASK)/python/.venv" ]; then \
+			(cd $(TASK)/python && . .venv/bin/activate && python *.py); \
 		else \
-			(cd $$TASK/python && ../../venv-run.sh python *.py $$EXTRA_ARGS); \
+			(cd $(TASK)/python && ../../venv-run.sh python *.py); \
 		fi; \
 	fi
 
@@ -133,43 +161,67 @@ build: ## Build a task (for Go)
 	fi
 
 test: ## Test a task with fmi-ai-judge
-	@if [ -z "$(filter-out test,$@)" ] && [ -z "$(MAKECMDGOALS)" ]; then \
+	@if [ -z "$(TASK)" ]; then \
 		echo "$(RED)Error: Please specify a task name$(NC)"; \
-		echo "Usage: make test <task-name>"; \
+		echo "Usage: make test TASK=<task-name> [LANG=go|python]"; \
 		exit 1; \
 	fi
-	@TASK="$(word 2,$(MAKECMDGOALS))"; \
-	if [ ! -d "$$TASK" ]; then \
-		echo "$(RED)Error: Task '$$TASK' not found$(NC)"; \
+	@if [ ! -d "$(TASK)" ]; then \
+		echo "$(RED)Error: Task '$(TASK)' not found$(NC)"; \
 		echo "Run 'make ls' to see available tasks"; \
 		exit 1; \
-	fi; \
-	if [ -d "$$TASK/go" ]; then \
-		LANG="go"; \
-	elif [ -d "$$TASK/python" ]; then \
-		LANG="python"; \
-	else \
-		echo "$(RED)Error: No implementation found for '$$TASK'$(NC)"; \
+	fi
+	@HAS_GO=0; \
+	HAS_PYTHON=0; \
+	if [ -d "$(TASK)/go" ]; then HAS_GO=1; fi; \
+	if [ -d "$(TASK)/python" ]; then HAS_PYTHON=1; fi; \
+	if [ $$HAS_GO -eq 0 ] && [ $$HAS_PYTHON -eq 0 ]; then \
+		echo "$(RED)Error: No implementation found for '$(TASK)'$(NC)"; \
 		exit 1; \
 	fi; \
-	echo "$(GREEN)🔨 Building: $$TASK ($$LANG)$(NC)"; \
-	if [ "$$LANG" = "go" ]; then \
-		GOFILE=$$(cd $$TASK/go && ls *.go 2>/dev/null | head -n 1); \
-		BINARY=$${GOFILE%.go}; \
-		(cd $$TASK/go && go build -o $$BINARY .); \
+	SELECTED_LANG=""; \
+	if [ -n "$(LANG)" ] && [ "$(LANG)" != "C.UTF-8" ] && [ "$(LANG)" != "en_US.UTF-8" ]; then \
+		SELECTED_LANG="$(LANG)"; \
 	fi; \
-	echo "$(GREEN)🧪 Testing: $$TASK ($$LANG)$(NC)"; \
-	if [ "$$LANG" = "go" ]; then \
+	if [ -n "$$SELECTED_LANG" ]; then \
+		if [ "$$SELECTED_LANG" = "go" ] && [ $$HAS_GO -eq 0 ]; then \
+			echo "$(RED)Error: Task '$(TASK)' has no Go implementation$(NC)"; \
+			exit 1; \
+		fi; \
+		if [ "$$SELECTED_LANG" = "python" ] && [ $$HAS_PYTHON -eq 0 ]; then \
+			echo "$(RED)Error: Task '$(TASK)' has no Python implementation$(NC)"; \
+			exit 1; \
+		fi; \
+	elif [ $$HAS_GO -eq 1 ] && [ $$HAS_PYTHON -eq 1 ]; then \
+		echo "$(YELLOW)Both Go and Python implementations available for '$(TASK)'$(NC)"; \
+		echo "Please specify which to test:"; \
+		echo "  make test TASK=$(TASK) LANG=go"; \
+		echo "  make test TASK=$(TASK) LANG=python"; \
+		exit 1; \
+	elif [ $$HAS_GO -eq 1 ]; then \
+		SELECTED_LANG="go"; \
+	else \
+		SELECTED_LANG="python"; \
+	fi; \
+	echo "$(GREEN)🔨 Building: $(TASK) ($$SELECTED_LANG)$(NC)"; \
+	if [ "$$SELECTED_LANG" = "go" ]; then \
+		GOFILE=$$(cd $(TASK)/go && ls *.go 2>/dev/null | head -n 1); \
+		BINARY=$${GOFILE%.go}; \
+		(cd $(TASK)/go && go build -o $$BINARY .); \
+	fi; \
+	echo "$(GREEN)🧪 Testing: $(TASK) ($$SELECTED_LANG)$(NC)"; \
+	if [ "$$SELECTED_LANG" = "go" ]; then \
 		if command -v judge >/dev/null 2>&1; then \
-			GOFILE=$$(cd $$TASK/go && ls *.go 2>/dev/null | head -n 1); \
+			GOFILE=$$(cd $(TASK)/go && ls *.go 2>/dev/null | head -n 1); \
 			BINARY=$${GOFILE%.go}; \
-			(cd $$TASK/go && judge run --bench $$BINARY); \
+			(cd $(TASK)/go && judge run --bench $$BINARY); \
 		else \
 			echo "$(YELLOW)fmi-ai-judge not found. Install with: pip install fmi-ai-judge$(NC)"; \
 		fi; \
-	elif [ "$$LANG" = "python" ]; then \
+	elif [ "$$SELECTED_LANG" = "python" ]; then \
 		if command -v judge >/dev/null 2>&1; then \
-			(cd $$TASK/python && judge run --bench *.py); \
+			PYFILE=$$(cd $(TASK)/python && ls *.py 2>/dev/null | head -n 1); \
+			(cd $(TASK)/python && judge run --bench python3 $$PYFILE); \
 		else \
 			echo "$(YELLOW)fmi-ai-judge not found. Install with: pip install fmi-ai-judge$(NC)"; \
 		fi; \

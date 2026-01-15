@@ -45,34 +45,34 @@ class Board:
     def is_draw_inevitable(self) -> bool:
         b = self.board
         lines = []
-        
+
         lines.extend([row for row in b])
         lines.extend([[b[r][c] for r in range(BOARD_DIM)] for c in range(BOARD_DIM)])
-        
+
         lines.append([b[i][i] for i in range(BOARD_DIM)])
         lines.append([b[i][BOARD_DIM - 1 - i] for i in range(BOARD_DIM)])
 
         for line in lines:
             if not (X_MARK in line and O_MARK in line):
                 return False
-        
+
         return True
 
     def is_game_over(self) -> bool:
         if self.get_winner() is not None:
             return True
-        
+
         if len(self.get_possible_moves()) == 0:
             return True
-            
+
         if self.is_draw_inevitable():
             return True
-            
+
         return False
 
     def get_winner(self) -> Optional[str]:
         b = self.board
-        
+
         def check_line(c1, c2, c3):
             if c1 != EMPTY_MARK and c1 == c2 == c3:
                 return c1
@@ -88,7 +88,7 @@ class Board:
         if res: return res
         res = check_line(b[0][2], b[1][1], b[2][0])
         if res: return res
-        
+
         return None
 
     def print_framed(self):
@@ -99,13 +99,12 @@ class Board:
                 print(f" {self.board[i][j]} |", end="")
             print()
         print("+---+---+---+")
-        sys.stdout.flush() 
+        sys.stdout.flush()
 
-    @staticmethod
     def parse_framed(lines: List[str]) -> 'Board':
         new_grid = []
         data_rows = [lines[1], lines[3], lines[5]]
-        
+
         for row_str in data_rows:
             parts = row_str.split('|')
             clean_row = []
@@ -113,7 +112,7 @@ class Board:
                 cell = parts[k].strip()
                 clean_row.append(cell)
             new_grid.append(clean_row)
-            
+
         return Board(new_grid)
 
 
@@ -123,8 +122,8 @@ class ScoreBoard:
     move: Optional[Move] = None
 
 class MinimaxAlgorithm:
-    MAX_DEPTH = 10 
-    
+    MAX_DEPTH = 10
+
     def __init__(self, ai_mark: str):
         self.ai_mark = ai_mark
         self.opponent_mark = O_MARK if ai_mark == X_MARK else X_MARK
@@ -142,7 +141,7 @@ class MinimaxAlgorithm:
             return ScoreBoard(self.evaluate(board, depth))
 
         best_move = None
-        
+
         if is_max:
             max_eval = -sys.maxsize
             for move in board.get_possible_moves():
@@ -180,29 +179,29 @@ def run_judge_mode():
         turn_line = sys.stdin.readline().strip()
         while not turn_line.startswith("TURN"):
             turn_line = sys.stdin.readline().strip()
-            if not turn_line: return 
-        
+            if not turn_line: return
+
         ai_mark = turn_line.split()[1]
-        
+
         board_lines = []
         for _ in range(7):
-            line = sys.stdin.readline().strip('\n') 
+            line = sys.stdin.readline().strip('\n')
             board_lines.append(line)
-            
+
         board = Board.parse_framed(board_lines)
-        
+
         if board.is_game_over():
             print("-1")
             return
 
         ai = MinimaxAlgorithm(ai_mark)
         best_move = ai.get_best_move(board)
-        
+
         if best_move:
             print(f"{best_move.row + 1} {best_move.col + 1}")
         else:
             print("-1")
-            
+
     except (IndexError, ValueError):
         print("-1")
 
@@ -211,11 +210,11 @@ def get_valid_config(prefix: str) -> Optional[str]:
         line = sys.stdin.readline()
         if not line:
             return None
-            
+
         text = line.strip()
         if not text:
             continue
-            
+
         parts = text.split()
         if len(parts) == 2 and parts[0] == prefix and parts[1] in [X_MARK, O_MARK]:
             return parts[1]
@@ -229,7 +228,7 @@ def run_game_mode():
 
     human_mark = get_valid_config("HUMAN")
     if not human_mark: return
-    
+
     ai_mark = O_MARK if human_mark == X_MARK else X_MARK
 
     board = Board()
@@ -263,10 +262,10 @@ def run_game_mode():
                     print("Invalid input: Please enter numbers.")
                     sys.stdout.flush()
                     continue
-            
+
             if board.is_game_over():
                 board.print_framed()
-            
+
             current_turn = ai_mark
 
         else:
@@ -274,7 +273,7 @@ def run_game_mode():
             if best_move:
                 board.make_move(best_move.row, best_move.col, ai_mark)
                 board.print_framed()
-            
+
             current_turn = human_mark
 
     winner = board.get_winner()
@@ -284,7 +283,7 @@ def run_game_mode():
         print("WINNER: O")
     else:
         print("DRAW")
-    
+
     sys.stdout.flush()
 
 def main():
